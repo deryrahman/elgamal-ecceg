@@ -1,3 +1,10 @@
+import random
+
+
+def generate_random_prime():
+    return random.choice(primes)
+
+
 def is_prime(n):
     if n <= 1:
         return False
@@ -18,3 +25,6 @@ def generate_public_key(g, x, p):
         raise ValueError("x should be 0<x<p-1")
     y = (g**x) % p
     return {'y': y, 'g': g, 'p': p}
+
+
+primes = [i for i in range(1 << 10, 1 << 11) if is_prime(i)]
