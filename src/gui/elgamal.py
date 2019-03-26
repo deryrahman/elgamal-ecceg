@@ -5,6 +5,7 @@ from gi.repository import Gtk
 from elgamal import elgamal, utils, key_generator
 import json
 import textwrap
+import time
 
 
 def generate_and_save(button, prime_entry, g_entry, private_key_entry,
@@ -38,11 +39,20 @@ def file_select(widget, text, data):
         text.set_text(str(bytes_text))
 
 
-def encrypt(button, public_key_entry, k_entry, plain_text, buffer, data):
+def encrypt(button, public_key_entry, k_entry, plain_text, buffer, data,
+            info_label):
+    info_label.set_visible(True)
+    info_label.set_text("WYO")
     k = int(k_entry.get_text())
     public_key = json.loads(public_key_entry.get_text())
+
     plain = utils.bytes_to_uint8(data['text'])
+    start_time = time.time()
     result = elgamal.encrypt(plain, public_key, k)
+    info_label.set_text(
+        "time       : {} seconds\nsize before: {} bytes\nsize after : {} bytes".
+        format(time.time() - start_time, len(data['text']),
+               len(result.tobytes())))
     data['save'] = result.tobytes()
     print(utils.int_to_hex(result))
     lines = textwrap.wrap(utils.int_to_hex(result), 60)
@@ -54,12 +64,19 @@ def encrypt(button, public_key_entry, k_entry, plain_text, buffer, data):
 
 
 def decrypt(button, public_key_entry, private_key_entry, cipher_text, buffer,
-            data):
+            data, info_label):
+    info_label.set_visible(True)
+
     private_key = json.loads(private_key_entry.get_text())
     public_key = json.loads(public_key_entry.get_text())
 
     cipher = utils.bytes_to_int(data['text'])
+    start_time = time.time()
     result = elgamal.decrypt(cipher, private_key, public_key['p'])
+    info_label.set_text(
+        "time       : {} seconds\nsize before: {} bytes\nsize after : {} bytes".
+        format(time.time() - start_time, len(data['text']),
+               len(result.tobytes())))
     data['save'] = result.tobytes()
     print(result.tostring())
     lines = textwrap.wrap(str(result.tostring()), 60)
@@ -176,12 +193,15 @@ class DialogElgamal(Gtk.Dialog):
 
         k_entry = Gtk.Entry()
 
+        info_label = Gtk.Label("")
+        info_label.set_visible(False)
         button_encrypt = Gtk.Button.new_with_label("Encrypt!")
         button_encrypt.connect("clicked", encrypt, public_key_entry, k_entry,
-                               textbox_upper, buffer, data)
+                               textbox_upper, buffer, data, info_label)
         button_decrypt = Gtk.Button.new_with_label("Decrypt!")
         button_decrypt.connect("clicked", decrypt, public_key_entry,
-                               private_key_entry, textbox_upper, buffer, data)
+                               private_key_entry, textbox_upper, buffer, data,
+                               info_label)
 
         grid.attach(Gtk.Label("Public Key"), 0, 0, 1, 1)
         grid.attach(public_key_entry, 1, 0, 3, 1)
@@ -201,6 +221,7 @@ class DialogElgamal(Gtk.Dialog):
             grid.attach(Gtk.Label("Save Path"), 0, 9, 1, 1)
             grid.attach(save_path, 1, 9, 3, 1)
             grid.attach(save_to, 0, 10, 4, 1)
+            grid.attach(info_label, 0, 11, 4, 1)
         else:
             grid.attach(Gtk.Label("Private Key"), 0, 2, 1, 1)
             grid.attach(private_key_entry, 1, 2, 3, 1)
@@ -216,4 +237,5 @@ class DialogElgamal(Gtk.Dialog):
             grid.attach(Gtk.Label("Save Path"), 0, 10, 1, 1)
             grid.attach(save_path, 1, 10, 3, 1)
             grid.attach(save_to, 0, 11, 4, 1)
+            grid.attach(info_label, 0, 12, 4, 1)
         return grid
