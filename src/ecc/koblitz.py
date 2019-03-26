@@ -5,26 +5,15 @@ from gmpy2 import divm
 from .curve import Point
 
 
-def encode(curve, k, msg):
-    out = []
+def encode1(curve, k, m):
+    for ik in range(1, k - 1):
+        x = m * k + ik
+        y = curve.solve(x)
 
-    for m in msg:
-        p = None
-
-        for ik in range(1, k - 1):
-            x = m * k + ik
-            y = curve.solve(x)
-
-            if y is not None:
-                p = Point(x, y)
-                break
-        if p is not None:
-            out.append(p)
-        else:
-            raise ValueError(f"Unable to encode {m} into elliptic curve")
-
-    return out
+        if y is not None:
+            return Point(x, y)
+    return None
 
 
-def decode(k, points):
-    return bytes([(p.x - 1) // k for p in points])
+def decode1(k, p):
+    return (p.x - 1) // k
