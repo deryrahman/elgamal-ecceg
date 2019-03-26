@@ -10,6 +10,8 @@ def encode1(curve, k, m):
         x = m * k + ik
         y = curve.solve(x)
 
+        if x >= curve.p:
+            raise ValueError("curve.p is too small or k is too big")
         if y is not None:
             return Point(x, y)
     return None
