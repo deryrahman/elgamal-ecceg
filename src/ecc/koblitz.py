@@ -8,8 +8,7 @@ from .curve import Point
 def encode(curve, k, msg):
     out = []
 
-    for c in msg:
-        m = ord(c)
+    for m in msg:
         p = None
 
         for ik in range(1, k - 1):
@@ -27,11 +26,5 @@ def encode(curve, k, msg):
     return out
 
 
-def decode(curve, k, points):
-    out = ""
-
-    for p in points:
-        m = (p.x - 1) // k
-        out += chr(m)
-
-    return out
+def decode(k, points):
+    return bytes([(p.x - 1) // k for p in points])
