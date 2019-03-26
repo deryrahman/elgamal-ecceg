@@ -15,8 +15,14 @@ class EllipticCurve:
         else:
             return None
 
+    def __repr__(self):
+        return f"(x**3 + {self.a}*x + {self.b}) mod {self.p}"
+
 
 class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
+    def __repr__(self):
+        return f"({self.x}, {self.y})"
