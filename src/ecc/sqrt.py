@@ -63,13 +63,8 @@ def square_root(n, p):
         if m == 0:
             return x
 
-        rm = r - m
-        rm_d = rm - 1
-        if rm_d < 0:
-            return None
-
-        x = (x * pow(g, pow(2, rm_d), p)) % p
-        g = pow(g, pow(2, rm), p)
+        x = (x * pow(g, pow(2, max(r - m - 1, 0)), p)) % p
+        g = pow(g, pow(2, r - m), p)
         b = (b * g) % p
 
         if b == 1:
