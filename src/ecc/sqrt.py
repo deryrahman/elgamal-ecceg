@@ -1,3 +1,11 @@
+# Euler's criterion
+# https://geeksforgeeks.org/eulers-criterion-check-if-square-root-under-modulo-p-exists
+
+
+def is_square_rootable(n, p):
+    return pow(n, (p - 1) // 2, p) == 1
+
+
 # Shanks Tonelli algorithm
 # https://geeksforgeeks.org/find-square-root-modulo-p-set-2-shanks-tonelli-algorithm
 
@@ -46,9 +54,10 @@ def square_root(n, p):
     while True:
         m = 0
         while m < r:
-            if order(p, b) is None:
+            val = order(p, b)
+            if val is None:
                 return None
-            if order(p, b) == pow(2, m):
+            if val == pow(2, m):
                 break
             m += 1
         if m == 0:
