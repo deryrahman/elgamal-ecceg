@@ -46,6 +46,17 @@ class EllipticCurve:
     def mul2(self, p):
         return self._add_g(self._gradient1(p), p, p)
 
+    def pow(self, k, p):
+        if k > 0:
+            out = p
+            for c in bin(k)[3:]:
+                out = self.mul2(out)
+                if c == "1":
+                    out = self.add(out, p)
+            return out
+        else:
+            return Point()
+
 
 class Point:
     def __init__(self, x=0, y=0):
