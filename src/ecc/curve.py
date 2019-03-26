@@ -39,7 +39,7 @@ class EllipticCurve:
     def add(self, p, q):
         return self._add_g(self._gradient(p, q), p, q)
 
-    def substract(self, p, q):
+    def subtract(self, p, q):
         q_neg = Point(q.x, -q.y % self.p)
         return self.add(p, q_neg)
 
