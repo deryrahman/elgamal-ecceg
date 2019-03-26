@@ -14,4 +14,4 @@ def decrypt(cipher, private_key, p):
     c2 = cipher[:, 1]
     c1 = np.int(cipher[:, 0][0])
     s = c1**(p - 1 - x) % p
-    return np.array(c2, dtype=np.int) * s % p
+    return np.array(c2 * s % p, dtype=np.uint8)
