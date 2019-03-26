@@ -31,7 +31,7 @@ def decode(curve, k, points):
     out = ""
 
     for p in points:
-        m = floor((p.x - 1) / k)
+        m = (p.x - 1) // k
         out += chr(m)
 
     return out
