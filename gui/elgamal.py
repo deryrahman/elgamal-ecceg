@@ -1,8 +1,8 @@
-# from gui.handler import encode, decode, psnr
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-from elgamal import elgamal, utils, key_generator
+from elgamal import elgamal, key_generator
+import utils
 import json
 import textwrap
 import time
@@ -42,7 +42,6 @@ def file_select(widget, text, data):
 def encrypt(button, public_key_entry, k_entry, plain_text, buffer, data,
             info_label):
     info_label.set_visible(True)
-    info_label.set_text("WYO")
     k = int(k_entry.get_text())
     public_key = json.loads(public_key_entry.get_text())
 
@@ -135,7 +134,7 @@ class DialogElgamal(Gtk.Dialog):
         grid.set_row_spacing(10)
 
         prime_info = Gtk.Label("suggested prime number: {}".format(
-            key_generator.generate_random_prime()))
+            utils.generate_random_prime()))
         prime_entry = Gtk.Entry()
         g_entry = Gtk.Entry()
         private_key_entry = Gtk.Entry()

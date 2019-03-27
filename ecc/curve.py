@@ -4,6 +4,7 @@ from .sqrt import is_square_rootable, square_root
 
 
 class EllipticCurve:
+
     def __init__(self, a, b, p):
         self.a = a
         self.b = b
@@ -18,7 +19,7 @@ class EllipticCurve:
             return None
 
     def __repr__(self):
-        return f"(x**3 + {self.a}*x + {self.b}) mod {self.p}"
+        return "(x**3 + {}*x + {}) mod {}".format(self.a, self.b, self.p)
 
     def _gradient(self, p, q):
         dy = p.y - q.y
@@ -59,9 +60,10 @@ class EllipticCurve:
 
 
 class Point:
+
     def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
 
     def __repr__(self):
-        return f"({self.x}, {self.y})"
+        return "({}, {})".format(self.x, self.y)

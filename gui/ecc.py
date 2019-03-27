@@ -1,9 +1,9 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-from elgamal import elgamal, utils, key_generator
+import utils
 from ecc import curve, koblitz
-from ecc import eceg
+from ecc import eceg, eceg_np
 import json
 import textwrap
 import time
@@ -14,6 +14,7 @@ def generate_and_save(button, prime_entry, a_entry, b_entry, k_entry,
     p = int(prime_entry.get_text())
     a = int(a_entry.get_text())
     b = int(b_entry.get_text())
+    b1 = b
     k = int(k_entry.get_text())
     b_char = ord(base_shared_entry.get_text())
     pri = int(private_key_entry.get_text())
@@ -24,7 +25,19 @@ def generate_and_save(button, prime_entry, a_entry, b_entry, k_entry,
         b = koblitz.encode1(c, k, b_char)
         pub = eceg.gen_pub(c, b, pri)
         with open(save_path.get_text() + '.pub', 'w') as f:
-            json.dump({'x': int(pub.x), 'y': int(pub.y)}, f)
+            json.dump({
+                'pub': {
+                    'x': int(pub.x),
+                    'y': int(pub.y)
+                },
+                'helper': {
+                    'a': a,
+                    'b': b1,
+                    'p': p,
+                    'k': k,
+                    'b_char': b_char
+                }
+            }, f)
         with open(save_path.get_text() + '.pri', 'w') as f:
             json.dump({'pri': pri}, f)
     except Exception as e:
@@ -47,23 +60,43 @@ def file_select(widget, text, data):
         text.set_text(str(bytes_text))
 
 
-def encrypt(button, public_key_entry, k_entry, plain_text, buffer, data,
-            info_label):
+def encrypt(button, public_key_entry, plain_text, buffer, data, info_label):
     info_label.set_visible(True)
-    info_label.set_text("WYO")
-    k = int(k_entry.get_text())
     public_key = json.loads(public_key_entry.get_text())
+    pub = public_key['pub']
+    pub = curve.Point(x=pub['x'], y=pub['y'])
+    a = public_key['helper']['a']
+    b = public_key['helper']['b']
+    p = public_key['helper']['p']
+    k = public_key['helper']['k']
+    b_char = public_key['helper']['b_char']
+
+    c = curve.EllipticCurve(a, b, p)
+    b = koblitz.encode1(c, k, b_char)
 
     plain = utils.bytes_to_uint8(data['text'])
     start_time = time.time()
-    result = elgamal.encrypt(plain, public_key, k)
+    msg_cipher = None
+
+    for i in range(100):
+        try:
+            msg_cipher = eceg_np.to_np(
+                eceg.encrypt(c, b, pub, k, plain.tobytes()))
+            break
+        except Exception:
+            pass
+    if msg_cipher is None:
+        print(
+            "I've tried 100 times to encrypt but encrypt() didn't get good random number"
+        )
+    result = msg_cipher
     info_label.set_text(
         "time       : {} seconds\nsize before: {} bytes\nsize after : {} bytes".
         format(time.time() - start_time, len(data['text']),
                len(result.tobytes())))
     data['save'] = result.tobytes()
     print(utils.int_to_hex(result))
-    lines = textwrap.wrap(utils.int_to_hex(result), 60)
+    lines = textwrap.wrap(utils.int_to_hex(result), 100)
     if len(lines) > 20:
         result = 'cipher text to large. use save'
     else:
@@ -75,12 +108,25 @@ def decrypt(button, public_key_entry, private_key_entry, cipher_text, buffer,
             data, info_label):
     info_label.set_visible(True)
 
-    private_key = json.loads(private_key_entry.get_text())
     public_key = json.loads(public_key_entry.get_text())
+    pub = public_key['pub']
+    pub = curve.Point(x=pub['x'], y=pub['y'])
+    a = public_key['helper']['a']
+    b = public_key['helper']['b']
+    p = public_key['helper']['p']
+    k = public_key['helper']['k']
+    b_char = public_key['helper']['b_char']
+
+    c = curve.EllipticCurve(a, b, p)
+    b = koblitz.encode1(c, k, b_char)
+
+    private_key = json.loads(private_key_entry.get_text())
+    pri = private_key['pri']
 
     cipher = utils.bytes_to_int(data['text'])
     start_time = time.time()
-    result = elgamal.decrypt(cipher, private_key, public_key['p'])
+    msg_plain = eceg.decrypt(c, b, pri, k, eceg_np.from_np(cipher))
+    result = utils.bytes_to_uint8(msg_plain)
     info_label.set_text(
         "time       : {} seconds\nsize before: {} bytes\nsize after : {} bytes".
         format(time.time() - start_time, len(data['text']),
@@ -143,7 +189,7 @@ class DialogECCEG(Gtk.Dialog):
         grid.set_row_spacing(10)
 
         prime_info = Gtk.Label("suggested prime number: {}".format(
-            key_generator.generate_random_prime()))
+            utils.generate_random_prime()))
         prime_entry = Gtk.Entry()
         a_entry = Gtk.Entry()
         b_entry = Gtk.Entry()
@@ -210,12 +256,10 @@ class DialogECCEG(Gtk.Dialog):
         save_to = Gtk.Button.new_with_label("Save to File")
         save_to.connect("clicked", save_to_file, data, save_path)
 
-        k_entry = Gtk.Entry()
-
         info_label = Gtk.Label("")
         info_label.set_visible(False)
         button_encrypt = Gtk.Button.new_with_label("Encrypt!")
-        button_encrypt.connect("clicked", encrypt, public_key_entry, k_entry,
+        button_encrypt.connect("clicked", encrypt, public_key_entry,
                                textbox_upper, buffer, data, info_label)
         button_decrypt = Gtk.Button.new_with_label("Decrypt!")
         button_decrypt.connect("clicked", decrypt, public_key_entry,
@@ -228,19 +272,17 @@ class DialogECCEG(Gtk.Dialog):
         grid.attach(public_key_open, 1, 1, 3, 1)
 
         if is_encrypt:
-            grid.attach(Gtk.Label("K value"), 0, 2, 1, 1)
-            grid.attach(k_entry, 1, 2, 3, 1)
-            grid.attach(Gtk.Label("Open file"), 0, 3, 1, 1)
-            grid.attach(file_open, 1, 3, 3, 1)
-            grid.attach(Gtk.Label("Plain text"), 0, 4, 4, 1)
-            grid.attach(textbox_upper, 0, 5, 4, 1)
-            grid.attach(Gtk.Label("Cipher text"), 0, 6, 4, 1)
-            grid.attach(textbox_lower, 0, 7, 4, 1)
-            grid.attach(button_encrypt, 0, 8, 4, 1)
-            grid.attach(Gtk.Label("Save Path"), 0, 9, 1, 1)
-            grid.attach(save_path, 1, 9, 3, 1)
-            grid.attach(save_to, 0, 10, 4, 1)
-            grid.attach(info_label, 0, 11, 4, 1)
+            grid.attach(Gtk.Label("Open file"), 0, 2, 1, 1)
+            grid.attach(file_open, 1, 2, 3, 1)
+            grid.attach(Gtk.Label("Plain text"), 0, 3, 4, 1)
+            grid.attach(textbox_upper, 0, 4, 4, 1)
+            grid.attach(Gtk.Label("Cipher text"), 0, 5, 4, 1)
+            grid.attach(textbox_lower, 0, 6, 4, 1)
+            grid.attach(button_encrypt, 0, 7, 4, 1)
+            grid.attach(Gtk.Label("Save Path"), 0, 8, 1, 1)
+            grid.attach(save_path, 1, 8, 3, 1)
+            grid.attach(save_to, 0, 9, 4, 1)
+            grid.attach(info_label, 0, 10, 4, 1)
         else:
             grid.attach(Gtk.Label("Private Key"), 0, 2, 1, 1)
             grid.attach(private_key_entry, 1, 2, 3, 1)
