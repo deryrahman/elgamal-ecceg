@@ -11,7 +11,6 @@ def encrypt(curve, b, pub, koblitz_k, msg):
     out = []
     for m in msg:
         pm = encode1(curve, koblitz_k, m)
-        print(pm)
         k = randint(1, curve.p)
 
         out.append((
@@ -25,6 +24,5 @@ def decrypt(curve, b, pri, koblitz_k, cipher_msg):
     for msg_tuple in cipher_msg:
         m_a, m_b = msg_tuple
         m = curve.subtract(m_b, curve.pow(pri, m_a))
-        print(m)
         out.append(decode1(koblitz_k, m))
     return bytes(out)
