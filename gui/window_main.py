@@ -2,6 +2,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gui.elgamal import DialogElgamal
+from gui.ecc import DialogECCEG
 
 
 class Window(Gtk.Window):
