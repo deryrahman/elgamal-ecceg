@@ -6,7 +6,6 @@ from gui.ecc import DialogECCEG
 
 
 class Window(Gtk.Window):
-
     def __init__(self):
         Gtk.Window.__init__(self, title="Elgamal + ECCEG")
         self.set_border_width(20)

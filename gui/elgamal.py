@@ -49,9 +49,9 @@ def encrypt(button, public_key_entry, k_entry, plain_text, buffer, data,
     start_time = time.time()
     result = elgamal.encrypt(plain, public_key, k)
     info_label.set_text(
-        "time       : {} seconds\nsize before: {} bytes\nsize after : {} bytes".
-        format(time.time() - start_time, len(data['text']),
-               len(result.tobytes())))
+        "time       : {} seconds\nsize before: {} bytes\nsize after : {} bytes"
+        .format(time.time() - start_time, len(data['text']),
+                len(result.tobytes())))
     data['save'] = result.tobytes()
     print(utils.int_to_hex(result))
     lines = textwrap.wrap(utils.int_to_hex(result), 60)
@@ -73,9 +73,9 @@ def decrypt(button, public_key_entry, private_key_entry, cipher_text, buffer,
     start_time = time.time()
     result = elgamal.decrypt(cipher, private_key, public_key['p'])
     info_label.set_text(
-        "time       : {} seconds\nsize before: {} bytes\nsize after : {} bytes".
-        format(time.time() - start_time, len(data['text']),
-               len(result.tobytes())))
+        "time       : {} seconds\nsize before: {} bytes\nsize after : {} bytes"
+        .format(time.time() - start_time, len(data['text']),
+                len(result.tobytes())))
     data['save'] = result.tobytes()
     print(result.tostring())
     lines = textwrap.wrap(str(result.tostring()), 60)
@@ -94,7 +94,6 @@ def save_to_file(button, data, save_path):
 
 
 class DialogElgamal(Gtk.Dialog):
-
     def __init__(self, parent):
         self.data = {}
         Gtk.Dialog.__init__(self, "Elgamal", parent, 0)
@@ -169,7 +168,8 @@ class DialogElgamal(Gtk.Dialog):
         private_key_entry = Gtk.Entry()
         public_key_open = Gtk.FileChooserButton("Open File")
         public_key_open.set_width_chars(15)
-        public_key_open.connect("selection-changed", open_key, public_key_entry)
+        public_key_open.connect("selection-changed", open_key,
+                                public_key_entry)
 
         private_key_open = Gtk.FileChooserButton("Open File")
         private_key_open.set_width_chars(15)
@@ -184,7 +184,8 @@ class DialogElgamal(Gtk.Dialog):
         data = {'text': b'', 'save': b''}
         file_open = Gtk.FileChooserButton("Open File")
         file_open.set_width_chars(15)
-        file_open.connect("selection-changed", file_select, textbox_upper, data)
+        file_open.connect("selection-changed", file_select, textbox_upper,
+                          data)
 
         save_path = Gtk.Entry()
         save_to = Gtk.Button.new_with_label("Save to File")

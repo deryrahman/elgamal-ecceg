@@ -4,7 +4,6 @@ from .sqrt import is_square_rootable, square_root
 
 
 class EllipticCurve:
-
     def __init__(self, a, b, p):
         self.a = a
         self.b = b
@@ -60,7 +59,6 @@ class EllipticCurve:
 
 
 class Point:
-
     def __init__(self, x=0, y=0):
         self.x = x
         self.y = y

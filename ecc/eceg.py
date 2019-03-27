@@ -13,9 +13,7 @@ def encrypt(curve, b, pub, koblitz_k, msg):
         pm = encode1(curve, koblitz_k, m)
         k = randint(1, curve.p)
 
-        out.append((
-            curve.pow(k, b),
-            curve.add(pm, curve.pow(k, pub))))
+        out.append((curve.pow(k, b), curve.add(pm, curve.pow(k, pub))))
     return out
 
 
